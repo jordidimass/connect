@@ -1,0 +1,24 @@
+{
+    "name": "Jordi Dimas",
+    "avatar": "https://pbs.twimg.com/profile_images/1642620300243206146/5k6AgIuq_400x400.jpg",
+    "links": [
+        {
+            "title": "My personal site",
+            "href": "https://jordidimas.com/"
+        },
+        {
+            "title": "LinkTree-Jordy",
+            "href": "https://linktreejordi.vercep.appk"
+        } 
+    ],
+    "socials": [
+        {
+            "title": "Twitter",
+            "href": "https://twitter.com/jordidimass"
+        },
+        {
+            "title": "GitHub",
+            "href": "https://github.com/jordidimass"
+        } 
+    ]
+}
