@@ -8,10 +8,10 @@
         },
         {
             "title": "some repos",
-            "href": "https://github.com/jordidimass"
+            "href": "https://github.com/jordidimass?tab=repositories"
         },
         {
-            "title": "tracking my music journey",
+            "title": "my music journey",
             "href": "https://www.last.fm/user/jordidimass"
         },
         {
@@ -37,8 +37,20 @@
             "href": "https://twitter.com/jordidimass"
         },
         {
+            "title": "Instagram",
+            "href": "https://instagram.com/jordidimass"
+        },
+        {
+            "title": "LinkedIn",
+            "href": "https://www.linkedin.com/in/jordidimass/"
+        },
+        {
             "title": "GitHub",
             "href": "https://github.com/jordidimass"
-        } 
+        },
+        {
+            "title": "Telegram",
+            "href": "https://t.me/jordidimass"
+        }
     ]
 }
