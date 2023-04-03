@@ -16,10 +16,9 @@ function LinkCard({ href, title, image }: { href: string, title: string, image ?
   );
 }
 
-// 
 export default function Home() {
   return (
-    <div className="flex mx-auto items-center flex-col w-full justify-center mt-16 px-8"> 
+    <div className="flex mx-auto items-center flex-col w-full justify-center mt-16 px-8 max-w-2xl"> 
       <Image
         className='rounded-full'
         alt={data.name}
