@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import data from '../data.json';
-import TwitterIcon from '@mui/icons-material/Twitter';
+import XIcon from '@mui/icons-material/X';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import InstagramIcon from '@mui/icons-material/Instagram';
@@ -32,10 +32,10 @@ export default function Home() {
       ))}
       <div className="flex justify-center gap-7 w-full m-5 text-white">
         {data.socials.map((link) => {
-          if (link.href.includes('twitter')) {
+          if (link.href.includes('X')) {
             return (
               <a href={link.href} key={link.href} target="_blank" rel="noopener noreferrer">
-                <TwitterIcon className="w-10 h-10"/>
+                <XIcon className="w-10 h-10"/>
               </a>
             );
           }

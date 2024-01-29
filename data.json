@@ -7,12 +7,12 @@
             "href": "https://jordidimass.com/"
         },
         {
-            "title": "some repos",
-            "href": "https://github.com/jordidimass?tab=repositories"
-        },
-        {
             "title": "occasional photographer",
             "href": "https://unsplash.com/@jordidimass"
+        },
+        {
+            "title": "VSCO garbage collector",
+            "href": "https://vsco.co/jordidimas/gallery"
         },
         {
             "title": "my music journey",
@@ -23,12 +23,12 @@
             "href": "https://open.spotify.com/user/jordidimass/playlists"
         },
         {
-            "title": "book reviews",
-            "href": "https://goodreads.com/jordidimass"
+            "title": "some repos",
+            "href": "https://github.com/jordidimass?tab=repositories"
         },
         {
-            "title": "VSCO garbage collector",
-            "href": "https://vsco.co/jordidimas/gallery"
+            "title": "book reviews",
+            "href": "https://goodreads.com/jordidimass"
         },
         {
             "title": "shitty film reviews",
@@ -37,8 +37,8 @@
     ],
     "socials": [
         {
-            "title": "Twitter",
-            "href": "https://twitter.com/jordidimass"
+            "title": "X",
+            "href": "https://X.com/jordidimass"
         },
         {
             "title": "Instagram",
