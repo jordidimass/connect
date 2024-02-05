@@ -4,6 +4,7 @@ export default function Document() {
   return (
     <Html lang="en">
       <Head />
+      <title> Connect with me </title>
       <body className='bg-gradient-to-r from-gray-700 via-gray-900 to-black'>
         <Main />
         <NextScript />
