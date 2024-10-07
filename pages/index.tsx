@@ -8,9 +8,9 @@ import TelegramIcon from '@mui/icons-material/Telegram';
 
 function LinkCard({ href, title, image }: { href: string, title: string, image ?: string }) {
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" className="flex items-center p-4 bg-gradient-to-r from-indigo-200 via-red-200 to-yellow-100 w-full rounded-md hover:scale-105 transition-all border border-gray-300 mb-3 duration-300">
+    <a href={href} target="_blank" rel="noopener noreferrer" className="flex text-lg items-center p-4 bg-gradient-to-r from-indigo-200 via-red-200 to-yellow-100 w-full rounded-md hover:scale-105 transition-all border border-gray-300 mb-3 duration-300">
       <div className="flex flex-col text-center ">
-        <h2 className="font-semibold w-full text-center">{title}</h2>
+        <h2 className="font-medium w-full text-center">{title}</h2>
       </div>
     </a>
   );
@@ -18,7 +18,7 @@ function LinkCard({ href, title, image }: { href: string, title: string, image ?
 
 export default function Home() {
   return (
-    <div className="flex mx-auto items-center flex-col w-full justify-center mt-16 mb-16 px-8 max-w-2xl"> 
+    <div className="flex mx-auto items-center flex-col w-full h-full justify-center pt-16 pb-16 px-8 max-w-2xl"> 
       <Image
         className='rounded-full'
         alt={data.name}
