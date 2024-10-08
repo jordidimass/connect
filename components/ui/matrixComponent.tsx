@@ -2,21 +2,20 @@
 
 import { useEffect, useRef, useState } from "react";
 import { X, Minus, Maximize2 } from "lucide-react";
-import { useRouter } from "next/navigation";  // Import Next.js router
+import { useRouter } from "next/navigation";
 
-// MatrixComponent.tsx
 export default function MatrixComponent() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
-  const router = useRouter(); // Initialize the router hook
+  const router = useRouter();
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [isMatrixAnimating, setIsMatrixAnimating] = useState(true);
   const [audioProgress, setAudioProgress] = useState(0);
   const [remainingTime, setRemainingTime] = useState(0);
-  const [terminalPosition, setTerminalPosition] = useState({ x: 20, y: 20 });
-  const [terminalSize, setTerminalSize] = useState({ width: 400, height: 300 });
+  const [terminalPosition, setTerminalPosition] = useState({ x: 0, y: 0 });
+  const [terminalSize, setTerminalSize] = useState({ width: 0, height: 0 });
   const [isDraggingTerminal, setIsDraggingTerminal] = useState(false);
   const [isResizingTerminal, setIsResizingTerminal] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -40,13 +39,27 @@ export default function MatrixComponent() {
     },
   };
 
-  // Handle the exit functionality when "X" is clicked
   const handleExit = () => {
-    router.back(); // Navigate back to the previous page
-    // Alternatively, to go to the homepage, you could use: router.push('/');
+    router.back();
   };
 
-  // Matrix animation effect
+  useEffect(() => {
+    const updateTerminalSize = () => {
+      const width = Math.min(window.innerWidth * 0.75, 900);
+      const height = Math.min(window.innerHeight * 0.75, 675);
+      setTerminalSize({ width, height });
+      setTerminalPosition({
+        x: (window.innerWidth - width) / 2,
+        y: (window.innerHeight - height) / 2,
+      });
+    };
+
+    updateTerminalSize();
+    window.addEventListener('resize', updateTerminalSize);
+
+    return () => window.removeEventListener('resize', updateTerminalSize);
+  }, []);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -115,7 +128,6 @@ export default function MatrixComponent() {
     };
   }, [isMatrixAnimating]);
 
-  // Audio control effect
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -168,7 +180,6 @@ export default function MatrixComponent() {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
-  // Dragging and resizing logic
   const handleMouseDown = (e: React.MouseEvent | React.TouchEvent, action: "drag" | "resize") => {
     const rect = terminalRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -228,7 +239,6 @@ export default function MatrixComponent() {
     };
   }, [isDraggingTerminal, isResizingTerminal]);
 
-  // Terminal commands handling
   const handleTerminalInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       const input = terminalInput.trim();
@@ -248,7 +258,7 @@ export default function MatrixComponent() {
       case "help":
         newOutput = [
           ...newOutput,
-          "Available commands: help, clear, characters, about-matrix, play-track, pause-track, now-playing, toggle-matrix, switch-track",
+          "Available commands: help, clear, characters, about-matrix, play-track, pause-track, now-playing, toggle-matrix, switch-track, matrix-quote, pill-choice, hack, exit, whoami",
         ];
         break;
       case "clear":
@@ -269,7 +279,6 @@ export default function MatrixComponent() {
           ...newOutput,
           "The Matrix (1999) is a groundbreaking sci-fi action film directed by the Wachowskis.",
           "Set in a dystopian future, it explores the concept of simulated reality.",
-          "",
           "In this world, most of humanity is unknowingly trapped inside the Matrix,",
           "a virtual world created by sentient machines to harness human bodies as an energy source.",
         ];
@@ -297,6 +306,52 @@ export default function MatrixComponent() {
       case "switch-track":
         switchTrack();
         newOutput = [...newOutput, `Switched to ${tracks[currentTrack].title}`];
+        break;
+      case "matrix-quote":
+        const quotes = [
+          "I know kung fu.",
+          "There is no spoon.",
+          "Free your mind.",
+          "Welcome to the desert of the real.",
+          "What is real? How do you define real?",
+        ];
+        newOutput = [...newOutput, quotes[Math.floor(Math.random() * quotes.length)]];
+        break;
+      case "pill-choice":
+        newOutput = [
+          ...newOutput,
+          "You take the blue pill - the story ends, you wake up in your bed and believe whatever you want to believe.",
+          "You take the red pill - you stay in Wonderland and I show you how deep the rabbit-hole goes.",
+          "Which pill do you choose? (Type 'red' or 'blue')",
+        ];
+        break;
+      case "red":
+        newOutput = [...newOutput, "Remember... all I'm offering is the truth. Nothing more."];
+        break;
+      case "blue":
+        newOutput = [...newOutput, "The Matrix has you..."];
+        break;
+      case "hack":
+        newOutput = [
+          ...newOutput,
+          "Initiating hack sequence...",
+          "Bypassing firewalls...",
+          "Accessing mainframe...",
+          "Downloading data...",
+          "Hack complete. Welcome to the real world.",
+        ];
+        break;
+      case "exit":
+        newOutput = [...newOutput, "Exiting the Matrix..."];
+        setTimeout(() => handleExit(), 2000);
+        break;
+      case "whoami":
+        newOutput = [
+          ...newOutput,
+          "I am a Software Developer from Guatemala, with a passion for physics, systems, computer interfaces and computer science.",
+          "I never stop learning and constantly expand my knowledge, as I believe that connecting with inspiring individuals and challenging projects fuels my growth.",
+          "I am eager to collaborate with other developers and contribute to the web development community.",
+        ];
         break;
       default:
         newOutput = [...newOutput, "Command not recognized. Type 'help' for available commands."];
@@ -335,7 +390,7 @@ export default function MatrixComponent() {
           onMouseDown={(e) => handleMouseDown(e, "drag")}
           onTouchStart={(e) => handleMouseDown(e, "drag")}
         >
-          <span className="text-xs uppercase">TERMINAL</span>
+          <span className="text-xs uppercase">TERMINλL</span>
           <div className="flex space-x-1">
             <button className="text-[#0FFD20] hover:text-white" aria-label="Minimize">
               <Minus size={12} />
@@ -346,7 +401,7 @@ export default function MatrixComponent() {
             <button
               className="text-[#0FFD20] hover:text-white"
               aria-label="Close"
-              onClick={handleExit} // Attach the exit functionality to the "X" button
+              onClick={handleExit}
             >
               <X size={12} />
             </button>
