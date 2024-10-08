@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import data from '../data.json';
 import XIcon from '@mui/icons-material/X';
 import GitHubIcon from '@mui/icons-material/GitHub';
@@ -19,13 +20,15 @@ function LinkCard({ href, title, image }: { href: string, title: string, image ?
 export default function Home() {
   return (
     <div className="flex mx-auto items-center flex-col w-full h-full justify-center pt-16 pb-16 px-8 max-w-2xl"> 
-      <Image
-        className='rounded-full'
-        alt={data.name}
-        src={data.avatar}
-        width={120}
-        height={120}
-      />
+      <Link href="/matrix">
+        <Image
+          className='rounded-full cursor-pointer'
+          alt={data.name}
+          src={data.avatar}
+          width={120}
+          height={120}
+        />
+      </Link>
       <h1 className='font-bold mt-4 mb-8 text-xl text-gray-100'>{data.name}</h1>
       {data.links.map((link) => (
         <LinkCard key={link.href} {...link} />

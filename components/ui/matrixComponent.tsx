@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { X, Minus, Maximize2 } from "lucide-react";
+import { useRouter } from "next/navigation";  // Import Next.js router
 
 // MatrixComponent.tsx
 export default function MatrixComponent() {
@@ -9,6 +10,7 @@ export default function MatrixComponent() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
+  const router = useRouter(); // Initialize the router hook
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [isMatrixAnimating, setIsMatrixAnimating] = useState(true);
   const [audioProgress, setAudioProgress] = useState(0);
@@ -36,6 +38,12 @@ export default function MatrixComponent() {
       src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Propellerheads%20-%20Spybreak!-N6LWOL6ZJDSr5ud3AzpWAU43n7zSFN.mp3",
       title: "Propellerheads - Spybreak!",
     },
+  };
+
+  // Handle the exit functionality when "X" is clicked
+  const handleExit = () => {
+    router.back(); // Navigate back to the previous page
+    // Alternatively, to go to the homepage, you could use: router.push('/');
   };
 
   // Matrix animation effect
@@ -160,35 +168,41 @@ export default function MatrixComponent() {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
-  // Dragging logic for the terminal
-  const handleMouseDown = (e: React.MouseEvent, action: "drag" | "resize") => {
+  // Dragging and resizing logic
+  const handleMouseDown = (e: React.MouseEvent | React.TouchEvent, action: "drag" | "resize") => {
     const rect = terminalRef.current?.getBoundingClientRect();
     if (!rect) return;
 
+    const clientX = e.type === "mousedown" ? (e as React.MouseEvent).clientX : (e as React.TouchEvent).touches[0].clientX;
+    const clientY = e.type === "mousedown" ? (e as React.MouseEvent).clientY : (e as React.TouchEvent).touches[0].clientY;
+
     if (action === "drag") {
       setDragOffset({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
+        x: clientX - rect.left,
+        y: clientY - rect.top,
       });
       setIsDraggingTerminal(true);
     } else {
       setDragOffset({
-        x: rect.width - (e.clientX - rect.left),
-        y: rect.height - (e.clientY - rect.top),
+        x: rect.width - (clientX - rect.left),
+        y: rect.height - (clientY - rect.top),
       });
       setIsResizingTerminal(true);
     }
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
+  const handleMouseMove = (e: MouseEvent | TouchEvent) => {
+    const clientX = e instanceof MouseEvent ? e.clientX : e.touches[0].clientX;
+    const clientY = e instanceof MouseEvent ? e.clientY : e.touches[0].clientY;
+
     if (isDraggingTerminal) {
       setTerminalPosition({
-        x: e.clientX - dragOffset.x,
-        y: e.clientY - dragOffset.y,
+        x: clientX - dragOffset.x,
+        y: clientY - dragOffset.y,
       });
     } else if (isResizingTerminal) {
-      const newWidth = e.clientX - terminalPosition.x + dragOffset.x;
-      const newHeight = e.clientY - terminalPosition.y + dragOffset.y;
+      const newWidth = clientX - terminalPosition.x + dragOffset.x;
+      const newHeight = clientY - terminalPosition.y + dragOffset.y;
       setTerminalSize({
         width: Math.max(200, newWidth),
         height: Math.max(100, newHeight),
@@ -204,11 +218,93 @@ export default function MatrixComponent() {
   useEffect(() => {
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
+    document.addEventListener("touchmove", handleMouseMove);
+    document.addEventListener("touchend", handleMouseUp);
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener("touchmove", handleMouseMove);
+      document.removeEventListener("touchend", handleMouseUp);
     };
   }, [isDraggingTerminal, isResizingTerminal]);
+
+  // Terminal commands handling
+  const handleTerminalInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      const input = terminalInput.trim();
+      if (input) {
+        setTerminalOutput([...terminalOutput, `> ${terminalInput}`]);
+        processCommand(input);
+        setTerminalInput("");
+      }
+    }
+  };
+
+  const processCommand = (command: string) => {
+    const lowerCommand = command.toLowerCase().trim();
+    let newOutput = [...terminalOutput, `> ${command}`];
+
+    switch (lowerCommand) {
+      case "help":
+        newOutput = [
+          ...newOutput,
+          "Available commands: help, clear, characters, about-matrix, play-track, pause-track, now-playing, toggle-matrix, switch-track",
+        ];
+        break;
+      case "clear":
+        newOutput = [];
+        break;
+      case "characters":
+        newOutput = [
+          ...newOutput,
+          "ghost (jordi dimas) - The One",
+          "Morpheus - Captain of the Nebuchadnezzar",
+          "Shinji - Orange Cat",
+          "Agent Smith - Sentient program of the Matrix",
+          "Cypher - Crew member of the Nebuchadnezzar",
+        ];
+        break;
+      case "about-matrix":
+        newOutput = [
+          ...newOutput,
+          "The Matrix (1999) is a groundbreaking sci-fi action film directed by the Wachowskis.",
+          "Set in a dystopian future, it explores the concept of simulated reality.",
+          "",
+          "In this world, most of humanity is unknowingly trapped inside the Matrix,",
+          "a virtual world created by sentient machines to harness human bodies as an energy source.",
+        ];
+        break;
+      case "play-track":
+        toggleAudio();
+        newOutput = [...newOutput, `Playing: ${tracks[currentTrack].title}`];
+        break;
+      case "pause-track":
+        toggleAudio();
+        newOutput = [...newOutput, "Audio paused."];
+        break;
+      case "now-playing":
+        newOutput = [
+          ...newOutput,
+          `Now playing: ${tracks[currentTrack].title}`,
+          `Status: ${isAudioPlaying ? "Playing" : "Paused"}`,
+          `Time remaining: ${formatTime(remainingTime)}`,
+        ];
+        break;
+      case "toggle-matrix":
+        toggleMatrixAnimation();
+        newOutput = [...newOutput, isMatrixAnimating ? "Pausing Matrix animation." : "Resuming Matrix animation."];
+        break;
+      case "switch-track":
+        switchTrack();
+        newOutput = [...newOutput, `Switched to ${tracks[currentTrack].title}`];
+        break;
+      default:
+        newOutput = [...newOutput, "Command not recognized. Type 'help' for available commands."];
+        break;
+    }
+
+    setTerminalOutput(newOutput);
+  };
 
   return (
     <div className="bg-black min-h-screen font-mono text-[#0FFD20] overflow-hidden">
@@ -237,6 +333,7 @@ export default function MatrixComponent() {
         <div
           className="flex justify-between items-center p-1 border-b border-[#0FFD20] cursor-move"
           onMouseDown={(e) => handleMouseDown(e, "drag")}
+          onTouchStart={(e) => handleMouseDown(e, "drag")}
         >
           <span className="text-xs uppercase">TERMINAL</span>
           <div className="flex space-x-1">
@@ -246,14 +343,20 @@ export default function MatrixComponent() {
             <button className="text-[#0FFD20] hover:text-white" aria-label="Maximize">
               <Maximize2 size={12} />
             </button>
-            <button className="text-[#0FFD20] hover:text-white" aria-label="Close">
+            <button
+              className="text-[#0FFD20] hover:text-white"
+              aria-label="Close"
+              onClick={handleExit} // Attach the exit functionality to the "X" button
+            >
               <X size={12} />
             </button>
           </div>
         </div>
         <div className="p-2 overflow-y-auto" style={{ height: `calc(100% - 25px)` }}>
           {terminalOutput.map((line, index) => (
-            <div key={index} className="text-xs">{line}</div>
+            <div key={index} className="text-xs">
+              {line}
+            </div>
           ))}
           <div className="flex items-center text-xs">
             <span className="mr-1">{">"}</span>
@@ -261,12 +364,7 @@ export default function MatrixComponent() {
               type="text"
               value={terminalInput}
               onChange={(e) => setTerminalInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  setTerminalOutput([...terminalOutput, `> ${terminalInput}`]);
-                  setTerminalInput("");
-                }
-              }}
+              onKeyDown={handleTerminalInput}
               className="bg-transparent border-none outline-none flex-grow"
               aria-label="Terminal input"
             />
@@ -275,6 +373,7 @@ export default function MatrixComponent() {
         <div
           className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
           onMouseDown={(e) => handleMouseDown(e, "resize")}
+          onTouchStart={(e) => handleMouseDown(e, "resize")}
         />
       </div>
       <audio ref={audioRef} src={tracks[currentTrack].src} loop />
