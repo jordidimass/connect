@@ -20,10 +20,10 @@ export default function MatrixComponent() {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [terminalInput, setTerminalInput] = useState("");
   const [terminalOutput, setTerminalOutput] = useState<string[]>([
-    "Wake up, dear visitor...",
+    "Wake up...",
     "The Matrix has you...",
     "Follow the white rabbit.",
-    "Knock, knock, it's jordi.",
+    "Knock, knock, it's me jordi.",
   ]);
   const [currentTrack, setCurrentTrack] = useState<"clubbed" | "spybreak">("clubbed");
 
@@ -160,6 +160,56 @@ export default function MatrixComponent() {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
+  // Dragging logic for the terminal
+  const handleMouseDown = (e: React.MouseEvent, action: "drag" | "resize") => {
+    const rect = terminalRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    if (action === "drag") {
+      setDragOffset({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      });
+      setIsDraggingTerminal(true);
+    } else {
+      setDragOffset({
+        x: rect.width - (e.clientX - rect.left),
+        y: rect.height - (e.clientY - rect.top),
+      });
+      setIsResizingTerminal(true);
+    }
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isDraggingTerminal) {
+      setTerminalPosition({
+        x: e.clientX - dragOffset.x,
+        y: e.clientY - dragOffset.y,
+      });
+    } else if (isResizingTerminal) {
+      const newWidth = e.clientX - terminalPosition.x + dragOffset.x;
+      const newHeight = e.clientY - terminalPosition.y + dragOffset.y;
+      setTerminalSize({
+        width: Math.max(200, newWidth),
+        height: Math.max(100, newHeight),
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDraggingTerminal(false);
+    setIsResizingTerminal(false);
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDraggingTerminal, isResizingTerminal]);
+
   return (
     <div className="bg-black min-h-screen font-mono text-[#0FFD20] overflow-hidden">
       <style jsx global>{`
@@ -186,6 +236,7 @@ export default function MatrixComponent() {
       >
         <div
           className="flex justify-between items-center p-1 border-b border-[#0FFD20] cursor-move"
+          onMouseDown={(e) => handleMouseDown(e, "drag")}
         >
           <span className="text-xs uppercase">TERMINAL</span>
           <div className="flex space-x-1">
@@ -223,6 +274,7 @@ export default function MatrixComponent() {
         </div>
         <div
           className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
+          onMouseDown={(e) => handleMouseDown(e, "resize")}
         />
       </div>
       <audio ref={audioRef} src={tracks[currentTrack].src} loop />
