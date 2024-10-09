@@ -361,118 +361,167 @@ export default function MatrixComponent() {
     }
   };
 
-  const processCommand = (command: string) => {
+  const processCommand = async (command: string) => {
     const lowerCommand = command.toLowerCase().trim();
-    let newOutput = [...terminalOutput, `> ${command}`];
   
-    switch (lowerCommand) {
-      case "help":
-        if (window.innerWidth >= 768) {
-          // Desktop view (detailed help)
-          newOutput = [
-            ...newOutput,
-            "Available commands:",
-            "help          - Show available commands and their descriptions.",
-            "clear         - Clear the terminal screen.",
-            "characters    - List the characters from the Matrix.",
-            "play-track    - Start playing the current audio track.",
-            "pause-track   - Pause the currently playing track.",
-            "now-playing   - Display the current track and its status.",
-            "toggle-matrix - Toggle the Matrix animation on or off.",
-            "next-track    - Switch to the next track in the playlist.",
-            "prev-track    - Switch to the previous track in the playlist.",
-            "pill-choice   - Make the red or blue pill choice.",
-            "exit          - Exit the Matrix interface and return to the previous page.",
-            "whoami        - Display information about the user of this system.",
-          ];
+    // Check if the command is a natural language query using "ask"
+    if (lowerCommand.startsWith("ask ")) {
+      const question = command.slice(4); // Remove the "ask " prefix from the user input
+  
+      setTerminalOutput((prevOutput) => [...prevOutput, `> ${command}`, "Thinking..."]);
+  
+      try {
+        // Send the question to OpenAI API (through your /api/chat endpoint)
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ prompt: question }), // Send the user’s question
+        });
+  
+        const data = await response.json();
+  
+        if (response.ok) {
+          // Append the generated response to the terminal output
+          setTerminalOutput((prevOutput) => [...prevOutput, data.response]);
         } else {
-          // Mobile view (simple help)
-          newOutput = [
-            ...newOutput,
-            "Available commands: help, clear, characters, play-track, pause-track, now-playing, toggle-matrix, next-track, prev-track, pill-choice, exit, whoami",
-          ];
+          // In case of an error, show a generic error message
+          setTerminalOutput((prevOutput) => [...prevOutput, "Error: Could not generate a response."]);
         }
-        break;
-      case "clear":
-        newOutput = [];
-        break;
-      case "characters":
-        newOutput = [
-          ...newOutput,
-          "jordi - The One",
-          "Shinji - Captain of the Nebuchadnezzar | Orange Cat",
-          "Agent Smith - Sentient program of the Matrix",
-        ];
-        break;
-      case "next-track":
-        goToNextTrack();
-        newOutput = [
-          ...newOutput,
-          `Switched to next track: ${tracks[currentTrack].title}`,
-          `Now playing: ${tracks[currentTrack].title}`,
-        ];
-        break;
-      case "prev-track":
-        goToPrevTrack();
-        newOutput = [
-          ...newOutput,
-          `Switched to previous track: ${tracks[currentTrack].title}`,
-          `Now playing: ${tracks[currentTrack].title}`,
-        ];
-        break;
-      case "play-track":
-        toggleAudio();
-        newOutput = [...newOutput, `Playing: ${tracks[currentTrack].title}`];
-        break;
-      case "pause-track":
-        toggleAudio();
-        newOutput = [...newOutput, "Audio paused."];
-        break;
-      case "now-playing":
-        newOutput = [
-          ...newOutput,
-          `Now playing: ${tracks[currentTrack].title}`,
-          `Status: ${isAudioPlaying ? "Playing" : "Paused"}`,
-          `Time remaining: ${formatTime(remainingTime)}`,
-        ];
-        break;
-      case "toggle-matrix":
-        toggleMatrixAnimation();
-        newOutput = [...newOutput, isMatrixAnimating ? "Pausing Matrix animation." : "Resuming Matrix animation."];
-        break;
-      case "pill-choice":
-        newOutput = [
-          ...newOutput,
-          "You take the blue pill - the story ends, you wake up in your bed and believe whatever you want to believe.",
-          "You take the red pill - you stay in Wonderland and I show you how deep the rabbit-hole goes.",
-          "Which pill do you choose? (Type 'red' or 'blue')",
-        ];
-        break;
-      case "red":
-        newOutput = [...newOutput, "Remember... all I'm offering is the truth. Nothing more."];
-        break;
-      case "blue":
-        newOutput = [...newOutput, "The Matrix has you..."];
-        break;
-      case "exit":
-        newOutput = [...newOutput, "Exiting the Matrix..."];
-        setTimeout(() => handleExit(), 2000);
-        break;
-      case "whoami":
-        newOutput = [
-          ...newOutput,
-          "I am a Software Developer from Guatemala, with a passion for physics, systems, computer interfaces and computer science.",
-          "I never stop learning and constantly expand my knowledge, as I believe that connecting with inspiring individuals and challenging projects fuels my growth.",
-          "I am eager to collaborate with other developers and contribute to the web development community.",
-        ];
-        break;
-      default:
-        newOutput = [...newOutput, "Command not recognized. Type 'help' for available commands."];
-        break;
-    }
+      } catch (error) {
+        setTerminalOutput((prevOutput) => [...prevOutput, "Error: Failed to connect to API."]);
+      }
+    } else {
+      // Handle other commands as usual
+      switch (lowerCommand) {
+        case "help":
+          if (window.innerWidth >= 768) {
+            setTerminalOutput([
+              ...terminalOutput,
+              "Available commands:",
+              "help          - Show available commands and their descriptions.",
+              "clear         - Clear the terminal screen.",
+              "characters    - List the characters from the Matrix.",
+              "play-track    - Start playing the current audio track.",
+              "pause-track   - Pause the currently playing track.",
+              "now-playing   - Display the current track and its status.",
+              "toggle-matrix - Toggle the Matrix animation on or off.",
+              "next-track    - Switch to the next track in the playlist.",
+              "prev-track    - Switch to the previous track in the playlist.",
+              "pill-choice   - Make the red or blue pill choice.",
+              "exit          - Exit the Matrix interface and return to the previous page.",
+              "whoami        - Display information about the user of this system.",
+            ]);
+          } else {
+            setTerminalOutput([
+              ...terminalOutput,
+              "Available commands: help, clear, characters, play-track, pause-track, now-playing, toggle-matrix, next-track, prev-track, pill-choice, exit, whoami",
+            ]);
+          }
+          break;
   
-    setTerminalOutput(newOutput);
-  };   
+        case "clear":
+          setTerminalOutput([]);
+          break;
+  
+        case "characters":
+          setTerminalOutput([
+            ...terminalOutput,
+            "jordi - The One",
+            "Shinji - Captain of the Nebuchadnezzar | Orange Cat",
+            "Agent Smith - Sentient program of the Matrix",
+          ]);
+          break;
+  
+        case "next-track":
+          goToNextTrack();
+          setTerminalOutput((prevOutput) => [
+            ...prevOutput,
+            `Switched to next track: ${tracks[currentTrack].title}`,
+            `Now playing: ${tracks[currentTrack].title}`,
+          ]);
+          break;
+  
+        case "prev-track":
+          goToPrevTrack();
+          setTerminalOutput((prevOutput) => [
+            ...prevOutput,
+            `Switched to previous track: ${tracks[currentTrack].title}`,
+            `Now playing: ${tracks[currentTrack].title}`,
+          ]);
+          break;
+  
+        case "play-track":
+          toggleAudio();
+          setTerminalOutput((prevOutput) => [
+            ...prevOutput,
+            `Playing: ${tracks[currentTrack].title}`,
+          ]);
+          break;
+  
+        case "pause-track":
+          toggleAudio();
+          setTerminalOutput((prevOutput) => [...prevOutput, "Audio paused."]);
+          break;
+  
+        case "now-playing":
+          setTerminalOutput((prevOutput) => [
+            ...prevOutput,
+            `Now playing: ${tracks[currentTrack].title}`,
+            `Status: ${isAudioPlaying ? "Playing" : "Paused"}`,
+            `Time remaining: ${formatTime(remainingTime)}`,
+          ]);
+          break;
+  
+        case "toggle-matrix":
+          toggleMatrixAnimation();
+          setTerminalOutput((prevOutput) => [
+            ...prevOutput,
+            isMatrixAnimating ? "Pausing Matrix animation." : "Resuming Matrix animation.",
+          ]);
+          break;
+  
+        case "pill-choice":
+          setTerminalOutput((prevOutput) => [
+            ...prevOutput,
+            "You take the blue pill - the story ends, you wake up in your bed and believe whatever you want to believe.",
+            "You take the red pill - you stay in Wonderland and I show you how deep the rabbit-hole goes.",
+            "Which pill do you choose? (Type 'red' or 'blue')",
+          ]);
+          break;
+  
+        case "red":
+          setTerminalOutput((prevOutput) => [
+            ...prevOutput,
+            "Remember... all I'm offering is the truth. Nothing more.",
+          ]);
+          break;
+  
+        case "blue":
+          setTerminalOutput((prevOutput) => [...prevOutput, "The Matrix has you..."]);
+          break;
+  
+        case "exit":
+          setTerminalOutput((prevOutput) => [...prevOutput, "Exiting the Matrix..."]);
+          setTimeout(() => handleExit(), 2000);
+          break;
+  
+        case "whoami":
+          setTerminalOutput((prevOutput) => [
+            ...prevOutput,
+            "I am a Software Developer from Guatemala, with a passion for physics, systems, computer interfaces and computer science.",
+            "I never stop learning and constantly expand my knowledge, as I believe that connecting with inspiring individuals and challenging projects fuels my growth.",
+            "I am eager to collaborate with other developers and contribute to the web development community.",
+          ]);
+          break;
+  
+        default:
+          setTerminalOutput((prevOutput) => [...prevOutput, "Command not recognized. Type 'help' for available commands."]);
+          break;
+      }
+    }
+  };    
 
   return (
     <div className="bg-black min-h-screen font-mono text-[#0FFD20] overflow-hidden">
