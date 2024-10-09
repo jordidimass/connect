@@ -410,13 +410,14 @@ export default function MatrixComponent() {
               "next-track    - Switch to the next track in the playlist.",
               "prev-track    - Switch to the previous track in the playlist.",
               "pill-choice   - Make the red or blue pill choice.",
+              "ask           - Ask any question in natural language. Type 'ask' and then your prompt.",
               "exit          - Exit the Matrix interface and return to the previous page.",
               "whoami        - Display information about the user of this system.",
             ]);
           } else {
             setTerminalOutput([
               ...terminalOutput,
-              "Available commands: help, clear, characters, play-track, pause-track, now-playing, toggle-matrix, next-track, prev-track, pill-choice, exit, whoami",
+              "Available commands: help, clear, characters, play-track, pause-track, now-playing, toggle-matrix, next-track, prev-track, pill-choice, ask, exit, whoami",
             ]);
           }
           break;
