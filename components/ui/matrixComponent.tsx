@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { X, Minus, Maximize2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+type TrackOption = "clubbed" | "spybreak" | "prime_audio_soup" | "mindfields";
+
 export default function MatrixComponent() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -26,7 +28,11 @@ export default function MatrixComponent() {
     "Follow the white rabbit.",
     "Knock, knock, it's me jordi.",
   ]);
-  const [currentTrack, setCurrentTrack] = useState<"clubbed" | "spybreak">("clubbed");
+  const [currentTrack, setCurrentTrack] = useState<TrackOption>("clubbed");
+
+  // Command history states
+  const [commandHistory, setCommandHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState<number>(-1); // Start with -1, meaning no history navigation yet
 
   const tracks = {
     clubbed: {
@@ -34,15 +40,41 @@ export default function MatrixComponent() {
       title: "Rob Dougan - Clubbed to Death",
     },
     spybreak: {
-      src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Propellerheads%20-%20Spybreak!-N6LWOL6ZJDSr5ud3AzpWAU43n7zSFN.mp3",
-      title: "Propellerheads - Spybreak!",
+      src: "https://utfs.io/f/ixJ6E8OWunhtlYqL2pMnvrHn5AoqwhXROGzc49IVFUlbPK2J",
+      title: "Propellerheads - Spybreak",
+    },
+    prime_audio_soup: {
+      src: "https://utfs.io/f/ixJ6E8OWunhtKuEuy5NrBRwLmapM3zXlQ6okvxSPEWu5Tf2D",
+      title: "Meat Beat Manifesto - Prime Audio Soup",
+    },
+    mindfields: {
+      src: "https://utfs.io/f/ixJ6E8OWunhtmm3vSvRyF8KulPTUo67dnL4INgSpMAQYijsO",
+      title: "The Prodigy - Mindfields",
     },
   };
+
+  // Handle Cmd + K (macOS) or Ctrl + K (Windows/Linux) to clear terminal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+      if ((isMac && e.metaKey && e.key === "k") || (!isMac && e.ctrlKey && e.key === "k")) {
+        e.preventDefault(); // Prevent default browser behavior (if any)
+        setTerminalOutput([]); // Clear the terminal
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   const handleExit = () => {
     router.back();
   };
 
+  // Update terminal size
   useEffect(() => {
     const updateTerminalSize = () => {
       const width = Math.min(window.innerWidth * 0.75, 900);
@@ -55,11 +87,12 @@ export default function MatrixComponent() {
     };
 
     updateTerminalSize();
-    window.addEventListener('resize', updateTerminalSize);
+    window.addEventListener("resize", updateTerminalSize);
 
-    return () => window.removeEventListener('resize', updateTerminalSize);
+    return () => window.removeEventListener("resize", updateTerminalSize);
   }, []);
 
+  // Matrix animation
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -128,6 +161,7 @@ export default function MatrixComponent() {
     };
   }, [isMatrixAnimating]);
 
+  // Audio progress and remaining time
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -150,6 +184,7 @@ export default function MatrixComponent() {
     };
   }, []);
 
+  // Toggle audio
   const toggleAudio = () => {
     if (audioRef.current) {
       if (isAudioPlaying) {
@@ -165,12 +200,65 @@ export default function MatrixComponent() {
     setIsMatrixAnimating(!isMatrixAnimating);
   };
 
-  const switchTrack = () => {
-    setCurrentTrack(currentTrack === "clubbed" ? "spybreak" : "clubbed");
-    if (isAudioPlaying) {
-      audioRef.current?.pause();
-      audioRef.current?.load();
-      audioRef.current?.play();
+  const goToNextTrack = () => {
+    const trackList: Array<TrackOption> = [
+      "clubbed",
+      "spybreak",
+      "prime_audio_soup",
+      "mindfields",
+    ];
+
+    const nextTrackIndex = (trackList.indexOf(currentTrack) + 1) % trackList.length;
+    const nextTrack = trackList[nextTrackIndex];
+
+    if (currentTrack !== nextTrack) {
+      setCurrentTrack(nextTrack);
+
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = tracks[nextTrack].src;
+        audioRef.current.currentTime = 0;
+
+        audioRef.current.load();
+        audioRef.current.oncanplay = () => {
+          if (isAudioPlaying) {
+            audioRef.current.play().catch((error) => {
+              console.warn("Playback was prevented due to autoplay policy: ", error);
+            });
+          }
+        };
+      }
+    }
+  };
+
+  const goToPrevTrack = () => {
+    const trackList: Array<TrackOption> = [
+      "clubbed",
+      "spybreak",
+      "prime_audio_soup",
+      "mindfields",
+    ];
+
+    const prevTrackIndex = (trackList.indexOf(currentTrack) - 1 + trackList.length) % trackList.length;
+    const prevTrack = trackList[prevTrackIndex];
+
+    if (currentTrack !== prevTrack) {
+      setCurrentTrack(prevTrack);
+
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = tracks[prevTrack].src;
+        audioRef.current.currentTime = 0;
+
+        audioRef.current.load();
+        audioRef.current.oncanplay = () => {
+          if (isAudioPlaying) {
+            audioRef.current.play().catch((error) => {
+              console.warn("Playback was prevented due to autoplay policy: ", error);
+            });
+          }
+        };
+      }
     }
   };
 
@@ -240,12 +328,35 @@ export default function MatrixComponent() {
   }, [isDraggingTerminal, isResizingTerminal]);
 
   const handleTerminalInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
+    // Handle arrow keys for command history navigation
+    if (e.key === "ArrowUp") {
+      if (commandHistory.length > 0 && historyIndex > 0) {
+        const newIndex = historyIndex - 1;
+        setTerminalInput(commandHistory[newIndex]);
+        setHistoryIndex(newIndex);
+      } else if (historyIndex === -1 && commandHistory.length > 0) {
+        // If starting from scratch, set to the latest command
+        setTerminalInput(commandHistory[commandHistory.length - 1]);
+        setHistoryIndex(commandHistory.length - 1);
+      }
+    } else if (e.key === "ArrowDown") {
+      if (commandHistory.length > 0 && historyIndex < commandHistory.length - 1) {
+        const newIndex = historyIndex + 1;
+        setTerminalInput(commandHistory[newIndex]);
+        setHistoryIndex(newIndex);
+      } else if (historyIndex === commandHistory.length - 1) {
+        // If at the last command, reset input
+        setTerminalInput("");
+        setHistoryIndex(-1);
+      }
+    } else if (e.key === "Enter") {
       const input = terminalInput.trim();
       if (input) {
         setTerminalOutput([...terminalOutput, `> ${terminalInput}`]);
         processCommand(input);
-        setTerminalInput("");
+        setCommandHistory([...commandHistory, input]); // Add to history
+        setTerminalInput(""); // Clear input after processing
+        setHistoryIndex(-1); // Reset history index
       }
     }
   };
@@ -253,13 +364,34 @@ export default function MatrixComponent() {
   const processCommand = (command: string) => {
     const lowerCommand = command.toLowerCase().trim();
     let newOutput = [...terminalOutput, `> ${command}`];
-
+  
     switch (lowerCommand) {
       case "help":
-        newOutput = [
-          ...newOutput,
-          "Available commands: help, clear, characters, about-matrix, play-track, pause-track, now-playing, toggle-matrix, switch-track, matrix-quote, pill-choice, hack, exit, whoami",
-        ];
+        if (window.innerWidth >= 768) {
+          // Desktop view (detailed help)
+          newOutput = [
+            ...newOutput,
+            "Available commands:",
+            "help          - Show available commands and their descriptions.",
+            "clear         - Clear the terminal screen.",
+            "characters    - List the characters from the Matrix.",
+            "play-track    - Start playing the current audio track.",
+            "pause-track   - Pause the currently playing track.",
+            "now-playing   - Display the current track and its status.",
+            "toggle-matrix - Toggle the Matrix animation on or off.",
+            "next-track    - Switch to the next track in the playlist.",
+            "prev-track    - Switch to the previous track in the playlist.",
+            "pill-choice   - Make the red or blue pill choice.",
+            "exit          - Exit the Matrix interface and return to the previous page.",
+            "whoami        - Display information about the user of this system.",
+          ];
+        } else {
+          // Mobile view (simple help)
+          newOutput = [
+            ...newOutput,
+            "Available commands: help, clear, characters, play-track, pause-track, now-playing, toggle-matrix, next-track, prev-track, pill-choice, exit, whoami",
+          ];
+        }
         break;
       case "clear":
         newOutput = [];
@@ -267,20 +399,25 @@ export default function MatrixComponent() {
       case "characters":
         newOutput = [
           ...newOutput,
-          "ghost (jordi dimas) - The One",
-          "Morpheus - Captain of the Nebuchadnezzar",
-          "Shinji - Orange Cat",
+          "jordi - The One",
+          "Shinji - Captain of the Nebuchadnezzar | Orange Cat",
           "Agent Smith - Sentient program of the Matrix",
-          "Cypher - Crew member of the Nebuchadnezzar",
         ];
         break;
-      case "about-matrix":
+      case "next-track":
+        goToNextTrack();
         newOutput = [
           ...newOutput,
-          "The Matrix (1999) is a groundbreaking sci-fi action film directed by the Wachowskis.",
-          "Set in a dystopian future, it explores the concept of simulated reality.",
-          "In this world, most of humanity is unknowingly trapped inside the Matrix,",
-          "a virtual world created by sentient machines to harness human bodies as an energy source.",
+          `Switched to next track: ${tracks[currentTrack].title}`,
+          `Now playing: ${tracks[currentTrack].title}`,
+        ];
+        break;
+      case "prev-track":
+        goToPrevTrack();
+        newOutput = [
+          ...newOutput,
+          `Switched to previous track: ${tracks[currentTrack].title}`,
+          `Now playing: ${tracks[currentTrack].title}`,
         ];
         break;
       case "play-track":
@@ -303,20 +440,6 @@ export default function MatrixComponent() {
         toggleMatrixAnimation();
         newOutput = [...newOutput, isMatrixAnimating ? "Pausing Matrix animation." : "Resuming Matrix animation."];
         break;
-      case "switch-track":
-        switchTrack();
-        newOutput = [...newOutput, `Switched to ${tracks[currentTrack].title}`];
-        break;
-      case "matrix-quote":
-        const quotes = [
-          "I know kung fu.",
-          "There is no spoon.",
-          "Free your mind.",
-          "Welcome to the desert of the real.",
-          "What is real? How do you define real?",
-        ];
-        newOutput = [...newOutput, quotes[Math.floor(Math.random() * quotes.length)]];
-        break;
       case "pill-choice":
         newOutput = [
           ...newOutput,
@@ -330,16 +453,6 @@ export default function MatrixComponent() {
         break;
       case "blue":
         newOutput = [...newOutput, "The Matrix has you..."];
-        break;
-      case "hack":
-        newOutput = [
-          ...newOutput,
-          "Initiating hack sequence...",
-          "Bypassing firewalls...",
-          "Accessing mainframe...",
-          "Downloading data...",
-          "Hack complete. Welcome to the real world.",
-        ];
         break;
       case "exit":
         newOutput = [...newOutput, "Exiting the Matrix..."];
@@ -357,9 +470,9 @@ export default function MatrixComponent() {
         newOutput = [...newOutput, "Command not recognized. Type 'help' for available commands."];
         break;
     }
-
+  
     setTerminalOutput(newOutput);
-  };
+  };   
 
   return (
     <div className="bg-black min-h-screen font-mono text-[#0FFD20] overflow-hidden">
@@ -384,6 +497,7 @@ export default function MatrixComponent() {
           height: `${terminalSize.height}px`,
           boxShadow: "0 0 10px #0FFD20",
         }}
+        onClick={() => document.getElementById("terminal-input")?.focus()} // Focus input on terminal click
       >
         <div
           className="flex justify-between items-center p-1 border-b border-[#0FFD20] cursor-move"
@@ -416,6 +530,7 @@ export default function MatrixComponent() {
           <div className="flex items-center text-xs">
             <span className="mr-1">{">"}</span>
             <input
+              id="terminal-input"
               type="text"
               value={terminalInput}
               onChange={(e) => setTerminalInput(e.target.value)}
