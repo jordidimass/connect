@@ -9,9 +9,9 @@ import TelegramIcon from '@mui/icons-material/Telegram';
 
 function LinkCard({ href, title, image }: { href: string, title: string, image ?: string }) {
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" className="flex text-lg items-center p-4 bg-gradient-to-r from-indigo-200 via-red-200 to-yellow-100 w-full rounded-md hover:scale-105 transition-all border border-gray-300 mb-3 duration-300">
-      <div className="flex flex-col text-center ">
-        <h2 className="font-medium w-full text-center">{title}</h2>
+    <a href={href} target="_blank" rel="noopener noreferrer" className="flex text-lg items-center p-4 bg-gray-800 bg-opacity-30 backdrop-filter backdrop-blur-sm w-full md:w-[70%] rounded-md hover:scale-105 transition-all border border-gray-600 mb-3 duration-300">
+      <div className="flex flex-col text-center w-full">
+        <h2 className="font-medium text-gray-100">{title}</h2>
       </div>
     </a>
   );
