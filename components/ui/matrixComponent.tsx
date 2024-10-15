@@ -368,7 +368,7 @@ export default function MatrixComponent() {
     if (lowerCommand.startsWith("ask ")) {
       const question = command.slice(4); // Remove the "ask " prefix from the user input
   
-      setTerminalOutput((prevOutput) => [...prevOutput, `> ${command}`, "Thinking..."]);
+      setTerminalOutput((prevOutput) => [...prevOutput, "Thinking..."]);
   
       try {
         // Send the question to OpenAI API (through your /api/chat endpoint)
@@ -377,7 +377,7 @@ export default function MatrixComponent() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ prompt: question }), // Send the user’s question
+          body: JSON.stringify({ prompt: question }), // Send the user's question
         });
   
         const data = await response.json();
