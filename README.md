@@ -1,1 +1,1 @@
-connect with me
+this is a deprecated verison of my current jordidimass.com/connect page
